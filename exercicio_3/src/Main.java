@@ -3,7 +3,6 @@
 public class Main {
     public static void main(String[] args) {
 
-
         // Multiplicacao de inteiros
 
         System.out.println("\nMultiplicacao de 2 inteiros: " + MultiplicarInteiros.multiplicar(6, 10));
