@@ -1,6 +1,10 @@
 public class Empregador extends Empresa{
-    public String nome;
+    String nome;
     double saldoDoEmpregador = 0;
+
+    Empregador(){
+
+    }
 
     void pagarColaboradores(Empregado empregado, double valorPagamento){
         empregado.saldoDoEmpregado += valorPagamento;
@@ -12,7 +16,7 @@ public class Empregador extends Empresa{
         Empresa.saldoDaEmpresa -= valorPagamento;
     }
 
-    void imprimirEmpregador(String nome){
+    void imprimirInfo(String nome){
         this.nome = nome;
         System.out.println("Nome: " + nome);
         System.out.println("Saldo do Empregador: " + saldoDoEmpregador + " R$");
