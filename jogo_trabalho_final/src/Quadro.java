@@ -8,7 +8,6 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
     int alturaTela = 650;
 
     // IMAGEM
-
     Image imagemPersonagem;
     Image novaImagemPersonagem;
 
@@ -16,7 +15,6 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
     Image novaImagemVilao;
 
     // JOGADOR
-
     JLabel Personagem;
     int x0Personagem = 325;
     int y0Personagem = 488;
@@ -37,33 +35,38 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
     Timer timerVilao;
 
     // FUSIL
-
     JLabel Fusil;
     int x0Fusil = x0Personagem + larguraPersonagem/2;
     int y0Fusil = y0Personagem + larguraPersonagem/2;
     int larguraFusil = 7;
     int alturaFusil = 7;
-    int velocidadeFusil = 3;
+    int velocidadeFusil = 10;
     Timer timerFusil;
 
     // BALA
-
     JLabel Bala;
-    int x0Bala = x0Vilao + larguraVilao/2;
-    int y0Bala = y0Vilao + larguraVilao/2;
     int larguraBala = 7;
     int alturaBala = 7;
-    int velocidadeBala = 3;
+    int x0Bala = 325;
+    int y0Bala = 200;
+    int velocidadeBala = 15;
     Timer timerBala;
+    Timer timerDisparoVilao;
+
+    // EXPLOSAO
+    ImageIcon novoIconeExplosao;
+    Image novaImagemExplosao;
+
+    // MENSAGEM
+    JLabel mensagem;
+
+    boolean jogoEncerrado = false;
 
     public Quadro() {
 
         // JOGADOR
-
         Personagem = new JLabel();
         Personagem.setBounds(x0Personagem, y0Personagem, larguraPersonagem, alturaPersonagem);
-        //Personagem.setBackground(Color.blue);
-        //Personagem.setOpaque(true);
         ImageIcon personagem = new ImageIcon("personagem.png");
 
         Personagem.setIcon(personagem);
@@ -76,11 +79,8 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
         timerPersonagem.start();
 
         // VILAO
-
         Vilao = new JLabel();
         Vilao.setBounds(x0Vilao, y0Vilao, larguraVilao, alturaVilao);
-        // Vilao.setBackground(Color.green);
-        // Vilao.setOpaque(true);
         ImageIcon vilao = new ImageIcon("vilao.png");
 
         Vilao.setIcon(vilao);
@@ -92,26 +92,42 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
         timerVilao = new Timer(8, this);
         timerVilao.start();
 
-        // FUSIL
+        // EXPLOSÃO
+        ImageIcon explosao = new ImageIcon("explosao.png");
+        Image imagemExplosao = explosao.getImage();
+        novaImagemExplosao = imagemExplosao.getScaledInstance(2*larguraPersonagem, 2*alturaPersonagem, Image.SCALE_SMOOTH);
 
+        // FUSIL
         Fusil = new JLabel();
         Fusil.setBounds(x0Fusil, y0Fusil, larguraFusil, alturaFusil);
         Fusil.setBackground(Color.orange);
         Fusil.setOpaque(true);
 
-        // BALA
+        timerDisparoVilao = new Timer(850, this); // dispara a cada 1.5 segundos
+        timerDisparoVilao.start();
 
+        // BALA
         Bala = new JLabel();
         Bala.setBounds(x0Bala, y0Bala, larguraBala, alturaBala);
         Bala.setBackground(Color.orange);
         Bala.setOpaque(true);
-        timerBala = new Timer(2000, this);
+
+        timerBala = new Timer(10, this);
+        timerBala.start();
+
+        // MENSAGEM
+        mensagem = new JLabel();
+        mensagem.setForeground(new Color(0x124AD7));
+        mensagem.setBounds(375, 200, 375, 375);
+        mensagem.setText("VOCÊ PERDEU!");
+
+        mensagem.setVisible(false);
 
         // INFORMAÇÕES SOBRE A TELA
-
+        this.add(mensagem);
         this.add(Personagem);
         this.add(Vilao);
-        //this.add(Fusil);
+        this.add(Bala);
         this.addKeyListener(this);
 
         this.setSize(larguraTela, alturaTela);
@@ -122,8 +138,10 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
 
     @Override
     public void actionPerformed(ActionEvent event) {
+
+        if (jogoEncerrado) return;
+
         if(event.getSource()==timerFusil){
-            Fusil.setLocation(Fusil.getX(), Fusil.getY() - velocidadeFusil);
             int novaY = Fusil.getY() - velocidadeFusil;
             if (novaY >= 0){
                 Fusil.setLocation(Fusil.getX(), novaY);
@@ -132,11 +150,29 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
                 this.remove(Fusil);
                 this.repaint();
             }
+
+            if ((Math.abs((Fusil.getX() + larguraFusil / 2) - (Vilao.getX() + larguraVilao / 2))
+                    <= larguraVilao / 2) && Math.abs((Fusil.getY() + alturaFusil / 2) -
+                    (Vilao.getY() + alturaVilao / 2)) <= alturaVilao / 2){
+
+                mensagem.setForeground(new Color(0x2AC114));
+                mensagem.setText("VOCÊ GANHOU!!");
+                mensagem.setVisible(true);
+
+                novoIconeExplosao = new ImageIcon(novaImagemExplosao);
+                Vilao.setIcon(novoIconeExplosao);
+                jogoEncerrado = true;
+
+                timerPersonagem.stop();
+                timerVilao.stop();
+                if (timerBala != null) {
+                    timerBala.stop();
+                }
+                timerDisparoVilao.stop();
+            }
         }
 
-
         // PERSONAGEM
-
         if(event.getSource()==timerPersonagem){
             int novaX;
 
@@ -148,7 +184,6 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
                     } else
                         direcaoPersonagem = KeyEvent.VK_RIGHT;
                     break;
-
                 case KeyEvent.VK_RIGHT:
                     novaX = Personagem.getX() + velocidadePersonagem;
                     if (novaX + larguraPersonagem <= this.getContentPane().getWidth()) {
@@ -160,9 +195,12 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
         }
 
         // VILAO
-
         if(event.getSource()==timerVilao){
+
             int novaX;
+            if (Math.random() <= 0.05){
+                velocidadeVilao = velocidadeVilao*(-1);
+            }
 
             switch (trocaDirecao) {
                 case ' ', KeyEvent.VK_LEFT:
@@ -182,21 +220,50 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
                     break;
             }
         }
+
+        if(event.getSource() == timerDisparoVilao){
+            x0Bala = Vilao.getX() + larguraVilao / 2 - larguraBala / 2;
+            y0Bala = Vilao.getY() + alturaVilao;
+
+            Bala.setBounds(x0Bala, y0Bala, larguraBala, alturaBala);
+            this.add(Bala);
+            timerBala.start();
+        }
+
+        if(event.getSource()==timerBala){
+
+            int novaY = Bala.getY() + velocidadeBala;
+            if (novaY <= alturaTela){
+                Bala.setLocation(Bala.getX(), novaY);
+            } else {
+                this.remove(Bala);
+                this.repaint();
+            }
+
+            if ((Math.abs((Bala.getX() + larguraBala/2) - (Personagem.getX() + larguraPersonagem/2))
+                    <= larguraPersonagem / 2) && Math.abs((Bala.getY() + alturaBala/2) - (Personagem.getY()
+                    + alturaPersonagem/2)) <= alturaPersonagem / 2){
+
+                mensagem.setVisible(true);
+                novoIconeExplosao = new ImageIcon(novaImagemExplosao);
+                Personagem.setBounds(Personagem.getX(), Personagem.getY(), 2*larguraPersonagem, 2*alturaPersonagem);
+                Personagem.setIcon(novoIconeExplosao);
+                jogoEncerrado = true;
+
+                timerPersonagem.stop();
+                timerVilao.stop();
+                if (timerFusil != null) {
+                    timerFusil.stop();
+                }
+                timerBala.stop();
+                timerDisparoVilao.stop();
+            }
+        }
+
     }
 
     @Override
     public void keyTyped(KeyEvent event) {
-
-        // BALA VILAO
-        x0Bala = x0Vilao + larguraVilao/2 - larguraBala/2;
-        y0Bala = y0Vilao + alturaVilao;
-
-        Bala.setBounds(x0Bala, y0Bala, larguraBala, alturaBala);
-        this.add(Bala);
-        this.repaint();
-
-        timerBala = new Timer(velocidadeBala, this);
-        timerBala.start();
     }
 
     @Override
@@ -214,7 +281,7 @@ public class Quadro extends JFrame implements ActionListener, KeyListener {
 
             // timerFusil criado aqui
 
-            timerFusil = new Timer(velocidadeFusil, this);
+            timerFusil = new Timer(20, this);
             timerFusil.start();
         }
 

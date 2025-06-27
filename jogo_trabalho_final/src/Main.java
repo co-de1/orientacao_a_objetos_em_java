@@ -3,6 +3,6 @@
 public class Main {
     public static void main(String[] args) {
 
-        Quadro quadro = new Quadro();
+        new Quadro();
     }
 }
